@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EkoBelajar - Belajar Ekonomi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== BAR KAMPUS (tempat logo) =====
+       Logo: logo-unima.png (satu folder dengan file ini).
+       Nama kampus diubah di bagian CAMPUS pada script.js -->
+  <div class="campusbar">
+    <div class="container campus-inner">
+      <div class="logo-slot" id="logoSlot">
+        <img id="campusLogo" src="logo-unima.png" alt="Logo kampus">
+        <span class="logo-hint">Logo<br>Kampus</span>
+      </div>
+      <div class="campus-text">
+        <strong id="campusName">UNIVERSITAS NEGERI MANADO</strong>
+        <small id="campusSub">Fakultas / Program Studi</small>
+      </div>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="logo">EkoBelajar</a>
+      <nav>
+        <a href="#materi">Materi</a>
+        <a href="#kuis">Kuis</a>
+        <a href="#tentang">Tentang</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+        <div class="container hero-inner">
+      <div class="hero-text">
+        <span class="pill">Media belajar ekonomi</span>
+        <h1>Belajar ekonomi jadi lebih mudah dipahami</h1>
+        <p>Materi bergambar dan video: permintaan &amp; penawaran, inflasi, uang &amp; perbankan, dan lainnya. Baca, tandai selesai, lalu uji dirimu lewat kuis.</p>
+        <div class="hero-actions">
+          <a href="#materi" class="btn">Mulai belajar</a>
+          <a href="#kuis" class="btn ghost">Coba kuis</a>
+        </div>
+        <div class="stats">
+          <div><b id="statLessons">0</b><span>Materi</span></div>
+          <div><b id="statQuiz">0</b><span>Soal Kuis</span></div>
+          <div><b id="statDone">0</b><span>Selesai</span></div>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 360 280" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, sans-serif" role="img">
+          <title>Grafik pertumbuhan ekonomi dengan koin rupiah</title>
+          <line x1="30" y1="235" x2="335" y2="235" stroke="#62607f" stroke-width="2"/>
+          <rect class="bar" style="--d:.2s" x="50" y="185" width="38" height="50" rx="6" fill="#1f1b5c"/>
+          <rect class="bar" style="--d:.4s" x="100" y="155" width="38" height="80" rx="6" fill="#1f1b5c"/>
+          <rect class="bar" style="--d:.6s" x="150" y="120" width="38" height="115" rx="6" fill="#1f1b5c"/>
+          <rect class="bar" style="--d:.8s" x="200" y="85" width="38" height="150" rx="6" fill="#a62b4b"/>
+          <g font-size="13" font-weight="700" fill="#62607f" text-anchor="middle">
+            <text x="69" y="255">C</text><text x="119" y="255">I</text><text x="169" y="255">G</text><text x="219" y="255">X</text>
+          </g>
+          <polyline class="trend" points="69,172 119,142 169,107 219,72 272,46" fill="none" stroke="#f4c20d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polygon class="arrow" points="262,36 286,42 270,60" fill="#f4c20d"/>
+          <text class="late" x="50" y="30" font-size="14" font-weight="700" fill="#1f1b5c">Pertumbuhan ekonomi</text>
+          <g stroke="#b58900" stroke-width="1.5">
+            <g class="cn" style="--d:1.4s"><rect x="262" y="221" width="64" height="14" fill="#d9a800" stroke="none"/><ellipse cx="294" cy="221" rx="32" ry="9" fill="#f4c20d"/></g>
+            <g class="cn" style="--d:1.75s"><rect x="262" y="207" width="64" height="14" fill="#d9a800" stroke="none"/><ellipse cx="294" cy="207" rx="32" ry="9" fill="#f4c20d"/></g>
+            <g class="cn" style="--d:2.1s"><rect x="262" y="193" width="64" height="14" fill="#d9a800" stroke="none"/><ellipse cx="294" cy="193" rx="32" ry="9" fill="#f4c20d"/></g>
+          </g>
+          <text class="late" style="animation-delay:2.8s" x="294" y="197" font-size="11" font-weight="700" fill="#1f1b5c" text-anchor="middle">Rp</text>
+          <g class="fall"><circle cx="294" cy="80" r="12" fill="#f4c20d" stroke="#b58900" stroke-width="2"/><circle cx="294" cy="80" r="7" fill="none" stroke="#b58900" stroke-width="1.5"/></g>
+          <path class="spark" style="animation-delay:2.6s" d="M304 22l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z" fill="#f4c20d"/>
+          <path class="spark" style="animation-delay:3.5s" d="M236 40l2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2z" fill="#a62b4b"/>
+          <path class="spark" style="animation-delay:4.4s" d="M326 96l2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2z" fill="#1f1b5c"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+    <section id="materi">
+      <div class="sec-head">
+        <h2>Materi Pembelajaran</h2>
+        <p class="sec-sub">Klik kartu untuk membuka materi lengkap. Progres belajarmu tersimpan otomatis.</p>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Progres belajar</span><b id="progressText">0%</b></div>
+        <div class="progress"><div id="progressBar"></div></div>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Cari materi...">
+        <div id="filters" class="filters"></div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+      <p id="empty" class="empty" hidden>Materi tidak ditemukan.</p>
+    </section>
+
+    <section id="kuis">
+      <div class="sec-head">
+        <h2>Kuis Singkat</h2>
+        <p class="sec-sub">Uji pemahamanmu setelah membaca materi.</p>
+      </div>
+      <div id="quiz" class="quiz"></div>
+    </section>
+
+    <section id="tentang">
+      <div class="sec-head"><h2>Tentang</h2></div>
+      <div class="about">
+        <p>Website ini dibuat sebagai media belajar ekonomi. Materi dan soal kuis dikelola oleh pengelola melalui dashboard admin.</p>
+      </div>
+      <h3 class="team-title">Dibuat oleh</h3>
+      <div class="team-stage">
+        <div class="team">
+          <article class="member reveal" style="--d:0s">
+            <div class="avatar-ring"><span class="avatar">KR</span></div>
+            <h4>Karnia Rumbay</h4>
+            <span class="nim">NIM 25303010</span>
+            <p>Mahasiswa Pendidikan Ekonomi</p>
+          </article>
+          <article class="member reveal" style="--d:.18s">
+            <div class="avatar-ring"><span class="avatar alt">VT</span></div>
+            <h4>Virjin Tiow</h4>
+            <span class="nim">NIM 25303023</span>
+            <p>Mahasiswa Pendidikan Ekonomi</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">© <span id="year"></span> EkoBelajar · <span id="footCampus"></span> · <a href="admin.html" class="foot-admin">Admin</a></div>
+  </footer>
+
+  <!-- Modal materi -->
+  <div id="modal" class="modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button id="closeModal" class="close" aria-label="Tutup">&times;</button>
+      <div id="modalMedia" class="modal-media"></div>
+      <div class="modal-pad">
+        <div class="modal-meta"><span id="modalTag" class="tag"></span><span id="modalTime" class="time"></span></div>
+        <h3 id="modalTitle"></h3>
+        <div id="modalBody" class="modal-body"></div>
+        <div id="modalPoints" class="points"></div>
+        <div class="modal-nav">
+          <button id="prevLesson" class="nav-btn">Sebelumnya</button>
+          <button id="doneLesson" class="done-btn">Tandai selesai</button>
+          <button id="nextLesson" class="nav-btn">Berikutnya</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
