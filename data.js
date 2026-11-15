@@ -211,13 +211,70 @@ const baseQuestions = [
    Sumber: materi bawaan (di atas) + konten.js (hasil publikasi
    dari admin) + data lokal browser (draf admin).
    ========================================================== */
+/* ---------- Sanitasi data (cegah XSS dari localStorage / konten.js yang dimanipulasi) ---------- */
+const SAFE_TAGS = new Set(["P","BR","B","STRONG","I","EM","U","UL","OL","LI","H3","H4","DIV","SPAN"]);
+function sanitizeHTML(html) {
+  const doc = new DOMParser().parseFromString("<body>" + String(html == null ? "" : html), "text/html");
+  (function walk(node) {
+    [...node.childNodes].forEach(ch => {
+      if (ch.nodeType === 3) return;                                   // teks biasa
+      if (ch.nodeType !== 1 || !SAFE_TAGS.has(ch.tagName)) { ch.remove(); return; }   // buang tag tak dikenal beserta isinya
+      [...ch.attributes].forEach(a => ch.removeAttribute(a.name));     // buang semua atribut (onclick, style, href, dll.)
+      walk(ch);
+    });
+  })(doc.body);
+  return doc.body.innerHTML;
+}
+const REL_PATH = /^(?![a-z][a-z0-9+.\-]*:|\/\/|\/)[\w\-./ %]+$/i;
+function safeImageUrl(u) {
+  u = String(u == null ? "" : u).trim();
+  if (!u) return null;
+  if (/^data:image\/(png|jpe?g|gif|webp);base64,[a-z0-9+\/=]+$/i.test(u)) return u;
+  if (/^https:\/\//i.test(u)) { try { return new URL(u).href; } catch (e) { return null; } }
+  if (REL_PATH.test(u) && !u.includes("..")) return u;
+  return null;
+}
+function safeVideo(v) {
+  if (!v || typeof v !== "object") return null;
+  if (v.type === "youtube" && /^[\w-]{11}$/.test(String(v.id))) return { type: "youtube", id: String(v.id) };
+  if (v.type === "file" && REL_PATH.test(String(v.src)) && !String(v.src).includes("..") && /\.(mp4|webm|ogg)$/i.test(v.src)) return { type: "file", src: String(v.src) };
+  return null;
+}
+function safeColor(c) {
+  const ok = x => typeof x === "string" && /^#[0-9a-f]{3,8}$/i.test(x);
+  return Array.isArray(c) && ok(c[0]) && ok(c[1]) ? [c[0], c[1]] : PALETTE[0];
+}
+function safeLesson(l) {
+  l = l && typeof l === "object" ? l : {};
+  const num = Number(l.id);
+  return Object.assign({}, l, {
+    id: Number.isFinite(num) ? num : Date.now(),
+    title: String(l.title == null ? "" : l.title), topic: String(l.topic == null ? "" : l.topic),
+    summary: String(l.summary == null ? "" : l.summary),
+    icon: String(l.icon || "📘").slice(0, 8),
+    color: safeColor(l.color),
+    image: safeImageUrl(l.image), video: safeVideo(l.video),
+    minutes: Math.max(1, Number(l.minutes) || 3),
+    content: sanitizeHTML(l.content),
+    points: Array.isArray(l.points) ? l.points.map(String) : []
+  });
+}
+function safeQuestion(q) {
+  q = q && typeof q === "object" ? q : {};
+  const options = Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [];
+  const a = Number(q.answer);
+  return Object.assign({}, q, { q: String(q.q == null ? "" : q.q), options,
+    answer: Number.isInteger(a) && a >= 0 && a < options.length ? a : 0, why: String(q.why == null ? "" : q.why) });
+}
+const cleanData = c => ({ lessons: (c.lessons || []).map(safeLesson), questions: (c.questions || []).map(safeQuestion).filter(q => q.q && q.options.length >= 2) });
+
 const CUSTOM_KEY = "ekobelajar-custom";
 
 function loadCustom() {
   const c = { lessons: [], questions: [] };
   try {
     const x = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "null");
-    if (x) { c.lessons = x.lessons || []; c.questions = x.questions || []; }
+    if (x) { const k = cleanData(x); c.lessons = k.lessons; c.questions = k.questions; }
   } catch (e) {}
   return c;
 }
@@ -226,7 +283,7 @@ function saveCustom(c) {
 }
 function publishedData() {
   const k = window.KONTEN_TAMBAHAN || {};
-  return { lessons: k.lessons || [], questions: k.questions || [] };
+  return cleanData(k);
 }
 function mergedData() {
   const pub = publishedData(), loc = loadCustom();

@@ -38,45 +38,97 @@ async function fbCall(action, body) {
   }
   return data;
 }
+const GENERIC_ERR = "Email atau kata sandi salah.";
+const TOKEN_TTL_MS = 55 * 60 * 1000;          // token Firebase berlaku 1 jam; sesi ditutup sedikit lebih awal
+
+async function sha256Hex(t) {
+  if (!(window.crypto && crypto.subtle)) throw new Error("Browser tidak mendukung login aman. Buka lewat HTTPS.");
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+// Hanya akun dengan hash email yang cocok dengan config.js yang dianggap admin
+async function isAdminEmail(email) {
+  if (!FB || !FB.adminEmailHash) return false;       // tanpa hash, tidak ada yang dianggap admin
+  return (await sha256Hex(String(email).trim().toLowerCase())) === String(FB.adminEmailHash).toLowerCase();
+}
 async function fbSignIn(email, password) {
   const d = await fbCall("signInWithPassword", { email, password, returnSecureToken: true });
-  if (FB.adminEmail && String(d.email).toLowerCase() !== FB.adminEmail.toLowerCase()) throw new Error("Akun ini bukan admin.");
+  if (!(await isAdminEmail(d.email))) throw new Error(GENERIC_ERR);     // pesan sama agar akun lain tidak bisa dikenali
   return d;
 }
+
+/* Sesi: menyimpan token Firebase (bukan sekadar penanda "1"), lalu diverifikasi ulang ke server Firebase. */
+function saveSession(d) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ t: d.idToken, exp: Date.now() + TOKEN_TTL_MS })); } catch (e) {}
+}
+function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(EMAIL_KEY); } catch (e) {} }
+function readSession() {
+  try {
+    const x = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+    return x && typeof x.t === "string" && x.t && x.exp > Date.now() ? x : null;
+  } catch (e) { return null; }
+}
+async function verifySession() {
+  const s = readSession();
+  if (!s || !FB) return false;
+  try {
+    const d = await fbCall("lookup", { idToken: s.t });
+    const u = d.users && d.users[0];
+    return !!(u && !u.disabled && await isAdminEmail(u.email));
+  } catch (e) { return false; }
+}
+
 if (FB) {
-  $("emailWrap").hidden = false; $("loginEmail").required = true; $("loginEmail").value = FB.adminEmail || "";
+  $("emailWrap").hidden = false; $("loginEmail").required = true;     // email tidak diisi otomatis
 } else {
   $("loginMsg").textContent = "Login belum aktif: isi apiKey Firebase di file config.js, lalu deploy ulang.";
   $("loginMsg").hidden = false; $("loginBtn").disabled = true;
 }
 
-let fails = 0, lockUntil = 0;
-function isLoggedIn() { try { return sessionStorage.getItem(SESSION_KEY) === "1"; } catch (e) { return false; } }
+/* Batas percobaan login disimpan di localStorage: refresh halaman tidak mereset hitungannya.
+   Setiap 5 kali gagal, waktu tunggu berlipat ganda (30 dtk, 1 mnt, 2 mnt, ... maks. 15 mnt). */
+const LOCK_KEY = "ekobelajar-login-lock";
+function readLock() {
+  try { const x = JSON.parse(localStorage.getItem(LOCK_KEY) || "null"); if (x && typeof x === "object") return { fails: +x.fails || 0, until: +x.until || 0, level: +x.level || 0 }; } catch (e) {}
+  return { fails: 0, until: 0, level: 0 };
+}
+function writeLock(l) { try { localStorage.setItem(LOCK_KEY, JSON.stringify(l)); } catch (e) {} }
 
 $("loginForm").onsubmit = async e => {
   e.preventDefault();
   if (!FB) return;
   const m = $("loginMsg");
   const show = t => { m.textContent = t; m.hidden = false; };
-  const wait = Math.ceil((lockUntil - Date.now()) / 1000);
+  const lock = readLock();
+  const wait = Math.ceil((lock.until - Date.now()) / 1000);
   if (wait > 0) return show(`Terlalu banyak percobaan. Coba lagi dalam ${wait} detik.`);
   const email = $("loginEmail").value.trim();
-  let ok = false, err = "Email atau kata sandi salah.";
+  let ok = false, err = GENERIC_ERR, tokens = null;
   $("loginBtn").disabled = true; $("loginBtn").textContent = "Memeriksa...";
-  try { await fbSignIn(email, $("loginPass").value); ok = true; try { sessionStorage.setItem(EMAIL_KEY, email); } catch (x) {} }
-  catch (x) { err = x.message; }
+  try { tokens = await fbSignIn(email, $("loginPass").value); ok = true; }
+  catch (x) {
+    // Hanya masalah koneksi/konfigurasi yang ditampilkan apa adanya; selain itu pesan seragam
+    err = /terhubung|API key|HTTPS|Terlalu banyak|diaktifkan/i.test(x.message) ? x.message : GENERIC_ERR;
+  }
   $("loginBtn").disabled = false; $("loginBtn").textContent = "Masuk";
   if (ok) {
-    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch (x) {}
-    $("loginPass").value = ""; m.hidden = true; fails = 0;
+    saveSession(tokens);
+    try { sessionStorage.setItem(EMAIL_KEY, email); } catch (x) {}
+    $("loginPass").value = ""; m.hidden = true; writeLock({ fails: 0, until: 0, level: 0 });
     showApp();
   } else {
-    fails++;
-    if (fails >= 5) { lockUntil = Date.now() + 30000; fails = 0; err = "Terlalu banyak percobaan. Tunggu 30 detik."; }
+    lock.fails++;
+    if (lock.fails >= 5) {
+      lock.level++; lock.fails = 0;
+      const sec = Math.min(900, 30 * Math.pow(2, lock.level - 1));
+      lock.until = Date.now() + sec * 1000;
+      err = `Terlalu banyak percobaan. Tunggu ${sec >= 60 ? Math.round(sec / 60) + " menit" : sec + " detik"}.`;
+    }
+    writeLock(lock);
     show(err); $("loginPass").select();
   }
 };
-$("logoutBtn").onclick = () => { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {} location.reload(); };
+$("logoutBtn").onclick = () => { clearSession(); location.reload(); };
 
 /* ---------- Data kerja admin ---------- */
 let custom = loadCustom();
@@ -271,12 +323,15 @@ function renderPassStatus() {
   $("passStatus").textContent = "Kata sandi tersimpan di server (Firebase) dan berlaku sama di semua perangkat.";
 }
 async function changeFbPassword() {
-  if ($("pwNew").value.length < 6) return msg("Kata sandi baru minimal 6 karakter.", true);
+  const np = $("pwNew").value;
+  if (np.length < 10 || !/[A-Za-z]/.test(np) || !/\d/.test(np)) return msg("Kata sandi baru minimal 10 karakter dan harus mengandung huruf dan angka.", true);
+  if (np === $("pwOld").value) return msg("Kata sandi baru harus berbeda dari yang lama.", true);
   if ($("pwNew").value !== $("pwNew2").value) return msg("Pengulangan kata sandi tidak sama.", true);
   let email = ""; try { email = sessionStorage.getItem(EMAIL_KEY) || ""; } catch (x) {}
   try {
     const d = await fbSignIn(email, $("pwOld").value);          // pastikan kata sandi lama benar
-    await fbCall("update", { idToken: d.idToken, password: $("pwNew").value, returnSecureToken: true });
+    const u = await fbCall("update", { idToken: d.idToken, password: np, returnSecureToken: true });
+    saveSession(u.idToken ? u : d);
   } catch (x) {
     return msg(x.message === "Email atau kata sandi salah." ? "Kata sandi saat ini salah." : x.message, true);
   }
@@ -291,4 +346,10 @@ function showApp() {
   renderPassStatus();
   render();
 }
-if (isLoggedIn()) showApp();
+// Sesi hanya dipercaya jika token-nya lolos pemeriksaan ke server Firebase (bukan sekadar nilai di sessionStorage)
+(async () => {
+  if (!readSession()) return;
+  if (await verifySession()) showApp(); else clearSession();
+})();
+// Tutup sesi otomatis saat token kedaluwarsa
+setInterval(() => { if (!$("app").hidden && !readSession()) { clearSession(); location.reload(); } }, 30000);

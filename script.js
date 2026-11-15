@@ -22,7 +22,7 @@ function hasVideo(l) {
 
 // Sampul warna + ikon (dipakai bila foto belum ada)
 function coverHTML(l) {
-  return `<div class="cover" style="--g:linear-gradient(135deg,${l.color[0]},${l.color[1]})"><span>${l.icon}</span></div>`;
+  return `<div class="cover" style="--g:linear-gradient(135deg,${l.color[0]},${l.color[1]})"><span>${esc(l.icon)}</span></div>`;
 }
 
 // Gambar dengan cadangan sampul otomatis jika file tidak ditemukan
@@ -126,15 +126,15 @@ function openModal(id) {
   $("modalTime").textContent = `±${l.minutes} menit baca`;
   $("modalBody").innerHTML = l.content;
   $("modalPoints").innerHTML = l.points && l.points.length
-    ? `<h4>Poin penting</h4><ul>${l.points.map(p => `<li>${p}</li>`).join("")}</ul>` : "";
+    ? `<h4>Poin penting</h4><ul>${l.points.map(p => `<li>${esc(p)}</li>`).join("")}</ul>` : "";
 
   if (hasVideo(l) && l.video.type === "youtube") {
-    modalMedia.innerHTML = `<div class="ratio"><iframe src="https://www.youtube.com/embed/${l.video.id}"
+    modalMedia.innerHTML = `<div class="ratio"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(l.video.id)}"
       title="${esc(l.title)}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
-      <a class="yt-link" href="https://www.youtube.com/watch?v=${l.video.id}" target="_blank" rel="noopener">Buka video di YouTube</a>`;
+      <a class="yt-link" href="https://www.youtube.com/watch?v=${encodeURIComponent(l.video.id)}" target="_blank" rel="noopener noreferrer">Buka video di YouTube</a>`;
   } else if (hasVideo(l) && l.video.type === "file") {
-    modalMedia.innerHTML = `<video controls src="${l.video.src}"></video>`;
+    modalMedia.innerHTML = `<video controls src="${esc(l.video.src)}"></video>`;
   } else {
     imageOrCover(l, modalMedia);
   }

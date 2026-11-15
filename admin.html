@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; frame-src https://www.youtube.com; connect-src 'self' https://identitytoolkit.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script src="security.js"></script>
   <title>Dashboard Admin - EkoBelajar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +23,7 @@
       <h1>Dashboard Admin</h1>
       <p class="muted">EkoBelajar · Universitas Negeri Manado</p>
       <label id="emailWrap" hidden>Email admin
-        <input type="email" id="loginEmail" placeholder="email@contoh.com" autocomplete="username">
+        <input type="email" id="loginEmail" placeholder="email@contoh.com" autocomplete="username" spellcheck="false">
       </label>
       <label>Kata sandi
         <input type="password" id="loginPass" placeholder="Masukkan kata sandi" autofocus required>
@@ -106,8 +109,8 @@
         <div id="passStatus" class="ad-status"></div>
         <form id="passForm" class="ad-form narrow" autocomplete="off">
           <label>Kata sandi saat ini<input type="password" id="pwOld" required></label>
-          <label>Kata sandi baru (min. 6 karakter)<input type="password" id="pwNew" minlength="6" required></label>
-          <label>Ulangi kata sandi baru<input type="password" id="pwNew2" minlength="6" required></label>
+          <label>Kata sandi baru (min. 10 karakter, huruf dan angka)<input type="password" id="pwNew" minlength="10" required></label>
+          <label>Ulangi kata sandi baru<input type="password" id="pwNew2" minlength="10" required></label>
           <div class="ad-actions"><button type="submit" class="ad-primary">Simpan kata sandi</button></div>
         </form>
         <div class="ad-note-box" id="passNote">
