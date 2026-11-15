@@ -6,6 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; frame-src https://www.youtube.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <script src="security.js"></script>
+  <script src="theme.js"></script>
   <title>EkoBelajar - Belajar Ekonomi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,11 +34,15 @@
   <header class="navbar">
     <div class="container nav-inner">
       <a href="#" class="logo">EkoBelajar</a>
-      <nav>
-        <a href="#materi">Materi</a>
-        <a href="#kuis">Kuis</a>
-        <a href="#tentang">Tentang</a>
-      </nav>
+      <div class="nav-right">
+        <nav>
+          <a href="#materi">Materi</a>
+          <a href="#kuis">Kuis</a>
+          <a href="#tentang">Tentang</a>
+        </nav>
+        <button type="button" class="icon-btn qr-open" title="Tampilkan kode QR" aria-label="Tampilkan kode QR untuk membuka di HP">📱 Buka di HP</button>
+        <button type="button" id="themeBtn" class="icon-btn" aria-label="Ganti mode gelap" aria-pressed="false">🌙</button>
+      </div>
     </div>
   </header>
 
@@ -50,6 +55,7 @@
         <div class="hero-actions">
           <a href="#materi" class="btn">Mulai belajar</a>
           <a href="#kuis" class="btn ghost">Coba kuis</a>
+          <button type="button" class="btn ghost qr-open">📱 Scan QR</button>
         </div>
         <div class="stats">
           <div><b id="statLessons">0</b><span>Materi</span></div>
@@ -169,6 +175,21 @@
     </div>
   </div>
 
+  <!-- Modal kode QR -->
+  <div id="qrModal" class="modal qr-modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+      <button id="closeQR" class="close" aria-label="Tutup">&times;</button>
+      <h3 id="qrTitle">Buka di HP kamu</h3>
+      <p class="qr-sub" id="qrSub">Arahkan kamera HP ke kode di bawah ini.</p>
+      <div id="qrBox" class="qr-box"></div>
+      <p id="qrUrl" class="qr-url"></p>
+      <p id="qrWarn" class="qr-warn" hidden></p>
+      <button type="button" class="next" id="qrCopy">Salin tautan</button>
+    </div>
+  </div>
+
+  <script src="qrcode.js"></script>
+  <script src="effects.js"></script>
   <script src="data.js"></script>
   <script src="script.js"></script>
 </body>

@@ -170,8 +170,15 @@ $("closeModal").onclick = closeModal;
 $("prevLesson").onclick = () => step(-1);
 $("nextLesson").onclick = () => step(1);
 $("doneLesson").onclick = () => {
-  if (done.has(currentId)) done.delete(currentId); else done.add(currentId);
+  const adding = !done.has(currentId);
+  if (adding) done.add(currentId); else done.delete(currentId);
   saveDone(); refreshDoneBtn(); updateProgress(); renderCards();
+  if (adding && window.FX) {
+    const r = $("doneLesson").getBoundingClientRect();
+    FX.burst(r.left + r.width / 2, r.top, 45);
+    if (lessons.length && lessons.every(l => done.has(l.id))) { FX.celebrate(true); FX.toast("Semua materi selesai! Coba kuisnya sekarang 🎓"); }
+    else FX.toast("Materi ditandai selesai ✓");
+  }
 };
 modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
 document.addEventListener("keydown", e => {
@@ -182,29 +189,95 @@ document.addEventListener("keydown", e => {
 });
 
 /* ==========================================================
-   KUIS
+   KUIS (dengan penghitung benar/salah, timer, dan rekor terbaik)
    ========================================================== */
 const quizEl = $("quiz");
-let current = 0, score = 0;
+const BEST_KEY = "ekobelajar-best";
+let current = 0, score = 0, wrong = 0, quizStart = 0, quizTimer = 0;
+
+const fmtTime = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+function readBest() {
+  try {
+    const b = JSON.parse(localStorage.getItem(BEST_KEY) || "null");
+    if (b && Number.isFinite(b.score) && Number.isFinite(b.ms) && b.total === questions.length) return b;
+  } catch (e) {}
+  return null;
+}
+function saveBest(b) { try { localStorage.setItem(BEST_KEY, JSON.stringify(b)); } catch (e) {} }
+function stopTimer() { clearInterval(quizTimer); quizTimer = 0; }
+function tick() { const t = $("qTimer"); if (t) t.textContent = fmtTime(Date.now() - quizStart); }
+function pop(el) { if (!el) return; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
+
+function showIntro() {
+  stopTimer();
+  if (!questions.length) { quizEl.innerHTML = '<p class="info">Belum ada soal kuis.</p>'; return; }
+  const best = readBest();
+  quizEl.innerHTML = `
+    <div class="quiz-intro">
+      <div class="qi-icon" aria-hidden="true">🎯</div>
+      <h3>Siap menguji pemahamanmu?</h3>
+      <p class="info">${questions.length} soal pilihan ganda · waktu dihitung</p>
+      ${best ? `<p class="best">🏆 Rekor terbaik: ${best.score}/${best.total} dalam ${fmtTime(best.ms)}</p><br>` : ""}
+      <button class="next" id="startQuiz">Mulai kuis</button>
+    </div>`;
+  $("startQuiz").onclick = startQuiz;
+}
+
+function startQuiz() {
+  current = 0; score = 0; wrong = 0; quizStart = Date.now();
+  stopTimer(); quizTimer = setInterval(tick, 500);
+  renderQuestion();
+}
+
+function showResult() {
+  stopTimer();
+  const ms = Date.now() - quizStart, total = questions.length;
+  const pct = Math.round(score / total * 100);
+  const msg = pct === 100 ? "Sempurna, semua benar!" : pct >= 60 ? "Bagus, terus belajar!" : "Baca ulang materinya, lalu coba lagi";
+  const old = readBest();
+  const isBest = !old || score > old.score || (score === old.score && ms < old.ms);
+  if (isBest) saveBest({ score, total, ms });
+  const best = isBest ? { score, ms, total } : old;
+  quizEl.innerHTML = `
+    <div class="result">
+      <h3>Kuis selesai</h3>
+      <div class="big"><span id="scoreNum">0</span> / ${total}</div>
+      <div class="quiz-stats center">
+        <span class="chip ok">✓ ${score} benar</span>
+        <span class="chip bad">✕ ${wrong} salah</span>
+        <span class="chip">⏱ ${fmtTime(ms)}</span>
+      </div>
+      <p>${msg}</p>
+      ${isBest && score > 0 ? `<p class="best">🏆 Rekor baru!</p>` : best ? `<p class="best">🏆 Rekor terbaik: ${best.score}/${best.total} · ${fmtTime(best.ms)}</p>` : ""}<br>
+      <button class="next" id="retry">Ulangi kuis</button>
+    </div>`;
+  $("retry").onclick = startQuiz;
+  // hitung naik dari 0 sampai skor akhir
+  const el = $("scoreNum");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || score === 0) el.textContent = score;
+  else {
+    const t0 = performance.now(), dur = 700;
+    (function up(t) {
+      const k = Math.min(1, (t - t0) / dur);
+      el.textContent = Math.round(score * k);
+      if (k < 1) requestAnimationFrame(up);
+    })(t0);
+  }
+  if (pct >= 60 && window.FX) setTimeout(() => FX.celebrate(pct === 100), 250);
+  if (pct === 100 && window.FX) FX.toast("Sempurna! Semua jawaban benar 🎉");
+}
 
 function renderQuestion() {
-  if (current >= questions.length) {
-    const pct = Math.round(score / questions.length * 100);
-    const msg = pct === 100 ? "Sempurna, semua benar!" : pct >= 60 ? "Bagus, terus belajar!" : "Baca ulang materinya, lalu coba lagi";
-    quizEl.innerHTML = `
-      <div class="result">
-        <h3>Kuis selesai</h3>
-        <div class="big">${score} / ${questions.length}</div>
-        <p>${msg}</p><br>
-        <button class="next" id="retry">Ulangi kuis</button>
-      </div>`;
-    $("retry").onclick = () => { current = 0; score = 0; renderQuestion(); };
-    return;
-  }
+  if (current >= questions.length) return showResult();
 
   const item = questions[current];
   quizEl.innerHTML = `
     <div class="quiz-bar"><div style="width:${current / questions.length * 100}%"></div></div>
+    <div class="quiz-stats">
+      <span class="chip ok">✓ <b id="qOk">${score}</b> benar</span>
+      <span class="chip bad">✕ <b id="qBad">${wrong}</b> salah</span>
+      <span class="chip">⏱ <b id="qTimer">${fmtTime(Date.now() - quizStart)}</b></span>
+    </div>
     <div class="info">Soal ${current + 1} dari ${questions.length}</div>
     <h3>${esc(item.q)}</h3>
     <div id="opts"></div>
@@ -222,9 +295,16 @@ function renderQuestion() {
       const all = opts.querySelectorAll(".option");
       all.forEach(x => x.disabled = true);
       all[item.answer].classList.add("correct");
-      if (i === item.answer) score++; else b.classList.add("wrong");
+      if (i === item.answer) {
+        score++; $("qOk").textContent = score; pop($("qOk").parentNode);
+        if (window.FX) { const r = b.getBoundingClientRect(); FX.burst(r.left + 24, r.top + r.height / 2, 22); }
+      } else {
+        wrong++; $("qBad").textContent = wrong; pop($("qBad").parentNode);
+        b.classList.add("wrong");
+      }
       if (item.why) { $("why").textContent = "Penjelasan: " + item.why; $("why").hidden = false; }
       nextBtn.hidden = false;
+      nextBtn.focus({ preventScroll: true });
     };
     opts.appendChild(b);
   });
@@ -239,7 +319,7 @@ $("year").textContent = new Date().getFullYear();
 updateProgress();
 renderFilters();
 renderCards();
-renderQuestion();
+showIntro();
 
 /* ==========================================================
    PROFIL: muncul saat di-scroll + efek miring mengikuti kursor
@@ -263,3 +343,69 @@ document.documentElement.classList.add("js");
     el.addEventListener("pointerleave", () => { el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg"); });
   });
 })();
+
+/* ==========================================================
+   MODE GELAP
+   ========================================================== */
+const themeBtn = $("themeBtn");
+function applyTheme(t, save) {
+  document.documentElement.setAttribute("data-theme", t);
+  themeBtn.textContent = t === "dark" ? "☀️" : "🌙";
+  themeBtn.setAttribute("aria-pressed", String(t === "dark"));
+  const label = t === "dark" ? "Ganti ke mode terang" : "Ganti ke mode gelap";
+  themeBtn.setAttribute("aria-label", label); themeBtn.title = label;
+  if (save) { try { localStorage.setItem("ekobelajar-theme", t); } catch (e) {} }
+}
+applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light", false);
+themeBtn.onclick = () => {
+  const root = document.documentElement;
+  root.classList.add("theme-anim");
+  applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark", true);
+  setTimeout(() => root.classList.remove("theme-anim"), 450);
+};
+
+/* ==========================================================
+   KODE QR (membuka website di HP)
+   ========================================================== */
+// Opsional: isi dengan alamat website online agar QR selalu menuju alamat ini,
+// mis. "https://nama-project.vercel.app". Kosongkan untuk memakai alamat halaman yang sedang dibuka.
+const SITE_URL = "";
+
+const qrModal = $("qrModal");
+function currentSiteUrl() {
+  if (SITE_URL) return SITE_URL;
+  if (/^https?:$/.test(location.protocol)) return location.href.split("#")[0].split("?")[0];
+  return "";
+}
+function openQR() {
+  const url = currentSiteUrl();
+  const box = $("qrBox"), warn = $("qrWarn");
+  box.innerHTML = ""; warn.hidden = true;
+  $("qrUrl").textContent = url;
+  if (!url) {
+    warn.textContent = "Website sedang dibuka dari file di komputer, jadi belum punya alamat online. Buka lewat alamat Vercel, atau isi SITE_URL di script.js.";
+    warn.hidden = false;
+  } else {
+    try {
+      const q = qrcode(0, "M"); q.addData(url); q.make();
+      box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 4, scalable: true, alt: "Kode QR menuju website EkoBelajar" });
+    } catch (e) { warn.textContent = "Kode QR gagal dibuat. Alamat terlalu panjang?"; warn.hidden = false; }
+    if (!SITE_URL && /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)) {
+      warn.textContent = "Alamat ini (localhost) hanya bisa dibuka di komputer ini. Agar bisa dipindai HP, buka website lewat alamat online atau isi SITE_URL di script.js.";
+      warn.hidden = false;
+    }
+  }
+  qrModal.hidden = false; document.body.style.overflow = "hidden";
+  $("closeQR").focus();
+}
+function closeQR() { qrModal.hidden = true; document.body.style.overflow = ""; }
+document.querySelectorAll(".qr-open").forEach(b => b.onclick = openQR);
+$("closeQR").onclick = closeQR;
+qrModal.addEventListener("click", e => { if (e.target === qrModal) closeQR(); });
+document.addEventListener("keydown", e => { if (!qrModal.hidden && e.key === "Escape") closeQR(); });
+$("qrCopy").onclick = () => {
+  const url = currentSiteUrl();
+  if (!url) return FX.toast("Belum ada alamat untuk disalin");
+  const ok = () => FX.toast("Tautan disalin ✓"), fail = () => FX.toast("Gagal menyalin. Salin manual dari teks di atas");
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(ok, fail); else fail();
+};
