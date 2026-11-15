@@ -173,7 +173,7 @@ h2 { font-size: 1.9rem; font-weight: 700; color: var(--navy); line-height: 1.2; 
 .about { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 26px; max-width: 760px; }
 .team-title { margin: 28px 0 12px; font-size: 1.25rem; color: var(--navy); }
 .team-stage { position: relative; }
-.team { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; max-width: 640px; position: relative; z-index: 1; }
+.team { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; max-width: 960px; position: relative; z-index: 1; }
 .member { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 0 20px 24px; text-align: center; box-shadow: var(--shadow); transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .15s ease-out, box-shadow .3s; }
 .member:hover { box-shadow: var(--shadow-lg); }
 .member::before { content: ""; display: block; height: 84px; margin: 0 -20px; background: linear-gradient(120deg, var(--navy), #3a34a0 55%, var(--crimson)); background-size: 220% 100%; animation: band 7s ease-in-out infinite alternate; }
