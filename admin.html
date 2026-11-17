@@ -71,6 +71,7 @@
       </header>
 
       <div class="ad-stats" id="stats"></div>
+      <div id="syncStatus" class="ad-status" role="status" hidden></div>
       <div id="adMsg" class="ad-msg" role="status" hidden></div>
 
       <!-- MATERI -->
@@ -161,7 +162,7 @@
         <div class="ad-note-box" id="passNote">
           <b>Cara kerja:</b> kata sandi admin disimpan di server Firebase. Setelah disimpan, kata sandi baru langsung berlaku di semua perangkat
           dan kata sandi lama berhenti berlaku. Tidak perlu mengunduh atau menimpa file apa pun.<br><br>
-          <b>Catatan keamanan:</b> halaman admin ini hanya mengatur siapa yang bisa membuka dashboard. Materi dan soal tambahan masih tersimpan di browser ini.
+          <b>Catatan keamanan:</b> halaman admin ini hanya mengatur siapa yang bisa membuka dashboard. <span id="storeNote">Materi dan soal tambahan masih tersimpan di browser ini.</span>
         </div>
       </section>
     </main>

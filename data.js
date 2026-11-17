@@ -285,12 +285,73 @@ function publishedData() {
   const k = window.KONTEN_TAMBAHAN || {};
   return cleanData(k);
 }
+
+/* ---------- Konten bersama (Firestore) ----------
+   Jika projectId diisi di config.js, materi & soal tambahan disimpan di server (Firebase Firestore)
+   sehingga SEMUA pengunjung melihatnya. Tanpa projectId, dipakai mode lama (localStorage per perangkat). */
+const REMOTE_CACHE_KEY = "ekobelajar-remote-cache";
+let REMOTE = { lessons: [], questions: [] };
+function remoteEnabled() {
+  const c = window.FIREBASE_CONFIG;
+  return !!(c && c.apiKey && c.projectId);
+}
+function fsDocUrl(name) {
+  const c = window.FIREBASE_CONFIG;
+  return "https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(c.projectId) +
+    "/databases/(default)/documents/konten" + (name ? "/" + encodeURIComponent(name) : "");
+}
+function parseRemoteDocs(docs) {
+  const raw = { lessons: [], questions: [] }, map = new Map();
+  (docs || []).forEach(d => {
+    const key = String(d.name || "").split("/").pop();
+    const js = d.fields && d.fields.json && d.fields.json.stringValue;
+    if (!js) return;
+    map.set(key, js);
+    try {
+      const v = JSON.parse(js);
+      if (key === "soal" && Array.isArray(v)) raw.questions = v;
+      else if (key.startsWith("materi-") && v && typeof v === "object") raw.lessons.push(v);
+    } catch (e) {}
+  });
+  raw.lessons.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+  return { data: cleanData(raw), map };
+}
+function loadRemoteCache() {
+  if (!remoteEnabled()) return;
+  try {
+    const x = JSON.parse(localStorage.getItem(REMOTE_CACHE_KEY) || "null");
+    if (x) REMOTE = cleanData(x);
+  } catch (e) {}
+}
+/* Ambil konten terbaru dari server. Mengembalikan { ok, map } ; map = isi mentah tiap dokumen (dipakai admin). */
+async function fetchRemote() {
+  if (!remoteEnabled()) return { ok: false, map: new Map() };
+  const key = encodeURIComponent(window.FIREBASE_CONFIG.apiKey);
+  let docs = [], token = "";
+  try {
+    do {
+      const res = await fetch(fsDocUrl() + "?pageSize=300&key=" + key + (token ? "&pageToken=" + encodeURIComponent(token) : ""));
+      if (!res.ok) return { ok: false, map: new Map() };
+      const j = await res.json();
+      docs = docs.concat(j.documents || []);
+      token = j.nextPageToken || "";
+    } while (token);
+  } catch (e) { return { ok: false, map: new Map() }; }
+  const r = parseRemoteDocs(docs);
+  REMOTE = r.data;
+  try { localStorage.setItem(REMOTE_CACHE_KEY, JSON.stringify(REMOTE)); } catch (e) {}
+  return { ok: true, map: r.map };
+}
+loadRemoteCache();
+
 function mergedData() {
-  const pub = publishedData(), loc = loadCustom();
+  const pub = publishedData();
+  // Mode server: draf lokal tidak dipakai di website publik (server adalah satu-satunya sumber)
+  const loc = remoteEnabled() ? { lessons: [], questions: [] } : loadCustom();
   const L = new Map(baseLessons.map(l => [l.id, l]));
-  [...pub.lessons, ...loc.lessons].forEach(l => L.set(l.id, l));   // data lokal menimpa yang terpublikasi
+  [...pub.lessons, ...REMOTE.lessons, ...loc.lessons].forEach(l => L.set(l.id, l));
   const Q = new Map(baseQuestions.map(q => [q.q, q]));
-  [...pub.questions, ...loc.questions].forEach(q => Q.set(q.q, q));
+  [...pub.questions, ...REMOTE.questions, ...loc.questions].forEach(q => Q.set(q.q, q));
   return { lessons: [...L.values()], questions: [...Q.values()] };
 }
 

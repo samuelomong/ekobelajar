@@ -321,6 +321,19 @@ renderFilters();
 renderCards();
 showIntro();
 
+/* Konten bersama dari server (Firestore): ditampilkan dulu dari cache, lalu diperbarui bila ada yang baru */
+if (remoteEnabled()) {
+  fetchRemote().then(r => {
+    if (!r.ok) return;
+    const m = mergedData();
+    const same = JSON.stringify([m.lessons, m.questions]) === JSON.stringify([lessons, questions]);
+    if (same) return;
+    lessons = m.lessons; questions = m.questions;
+    updateProgress(); renderFilters(); renderCards();
+    if (!quizTimer) showIntro();            // jangan ganggu kuis yang sedang berjalan
+  });
+}
+
 /* ==========================================================
    PROFIL: muncul saat di-scroll + efek miring mengikuti kursor
    ========================================================== */

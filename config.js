@@ -13,8 +13,25 @@
           .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join("")))
    7. Google Cloud Console -> APIs & Services -> Credentials -> klik API key tersebut -> "Website restrictions",
       isi domain website Anda saja. Batasi juga ke "Identity Toolkit API".
-   8. Upload config.js, admin.html, admin.js ke hosting. */
+   8. KONTEN BERSAMA (agar materi/soal dari dashboard tampil untuk semua pengunjung):
+      a. Firebase console -> Build -> Firestore Database -> Create database (mode production, lokasi bebas).
+      b. Tab "Rules", ganti isinya dengan (ganti EMAIL_ADMIN dengan email admin asli), lalu Publish:
+           rules_version = '2';
+           service cloud.firestore {
+             match /databases/{database}/documents {
+               match /konten/{doc} {
+                 allow read: if true;
+                 allow write: if request.auth != null && request.auth.token.email == "EMAIL_ADMIN";
+               }
+             }
+           }
+      c. Salin "Project ID" (Project settings -> General) ke projectId di bawah.
+      d. Google Cloud Console -> Credentials -> API key tadi -> "API restrictions": izinkan juga "Cloud Firestore API"
+         (selain Identity Toolkit API).
+      Selama projectId kosong, konten tambahan tetap tersimpan di browser admin saja (mode lama).
+   9. Upload config.js, index.html, script.js, data.js, admin.html, admin.js ke hosting. */
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBSj_7rZ6nT47UV2ScycydDk_CtoGH0pKE",       // contoh: "AIzaSy..."
+  projectId: "",   // contoh: "ekobelajar-12345" (Project ID Firebase, bukan API key)
   adminEmailHash: "6f30d5a548aa6502d539b22cce28175059db974df410c67841107b178afddb68"   // SHA-256 email admin
 };

@@ -138,9 +138,98 @@ if (!custom.lessons.length && !custom.questions.length) {
   if (p.lessons.length || p.questions.length) { custom = JSON.parse(JSON.stringify(p)); saveCustom(custom); }
 }
 function persist() {
-  if (saveCustom(custom)) return true;
-  msg("Gagal menyimpan (penyimpanan penuh/diblokir). Coba foto yang lebih kecil atau ekspor cadangan.", true);
+  const okLocal = saveCustom(custom);                 // salinan cadangan di browser ini
+  if (remoteEnabled() && remoteReady) { queueSync(); return true; }   // server = sumber utama
+  if (okLocal) return true;
+  msg("Gagal menyimpan (penyimpanan penuh/diblokir). Coba foto yang lebih kecil.", true);
   return false;
+}
+
+/* ---------- Sinkron ke server (Firestore) ----------
+   Setiap perubahan otomatis dikirim ke server sehingga tampil untuk semua pengunjung. */
+let remoteReady = false;
+let synced = new Map();                 // key dokumen -> JSON yang sudah ada di server
+let syncChain = Promise.resolve();
+const MIGRATED_KEY = "ekobelajar-migrated-remote";
+const MAX_DOC = 900000;                 // batas dokumen Firestore ~1 MB
+function setSync(t, state) {
+  const el = $("syncStatus");
+  el.textContent = t; el.hidden = !t;
+  el.className = "ad-status" + (state ? " pending" : "");
+}
+function fsHeaders(token) { return { "Content-Type": "application/json", "Authorization": "Bearer " + token }; }
+async function fsCheck(res) {
+  if (res.ok) return;
+  let m = ""; try { m = ((await res.json()).error || {}).message || ""; } catch (e) {}
+  if (res.status === 401) throw new Error("sesi login habis, silakan masuk ulang");
+  if (res.status === 403) throw new Error("ditolak server. Periksa Rules Firestore dan pembatasan API key (izinkan Cloud Firestore API)");
+  if (res.status === 404) throw new Error("database Firestore belum dibuat");
+  throw new Error(m || "kode " + res.status);
+}
+async function fsWrite(key, json, token) {
+  if (json.length > MAX_DOC) throw new Error("materi terlalu besar. Kecilkan foto atau pakai link gambar");
+  await fsCheck(await fetch(fsDocUrl(key), { method: "PATCH", headers: fsHeaders(token),
+    body: JSON.stringify({ fields: { json: { stringValue: json } } }) }));
+}
+async function fsDelete(key, token) {
+  const res = await fetch(fsDocUrl(key), { method: "DELETE", headers: fsHeaders(token) });
+  if (res.status !== 404) await fsCheck(res);
+}
+function wantDocs() {
+  const w = new Map();
+  custom.lessons.forEach(l => w.set("materi-" + l.id, JSON.stringify(l)));
+  w.set("soal", JSON.stringify(custom.questions));
+  return w;
+}
+async function doSync() {
+  if (!remoteReady) return false;
+  const s = readSession();
+  if (!s) { setSync("Sesi login habis. Masuk ulang agar perubahan bisa disimpan ke server.", true); return false; }
+  const want = wantDocs();
+  setSync("Menyimpan ke server...", true);
+  try {
+    for (const [k, v] of want) if (synced.get(k) !== v) { await fsWrite(k, v, s.t); synced.set(k, v); }
+    for (const k of [...synced.keys()]) if (!want.has(k)) { await fsDelete(k, s.t); synced.delete(k); }
+    setSync("✓ Tersimpan di server. Materi dan soal ini tampil untuk semua pengunjung.");
+    return true;
+  } catch (e) {
+    setSync("Gagal menyimpan ke server: " + e.message + ". Perubahan masih ada di browser ini.", true);
+    return false;
+  }
+}
+function queueSync() { syncChain = syncChain.then(doSync, doSync); return syncChain; }
+
+async function initRemote() {
+  if (!remoteEnabled()) {
+    setSync("Mode lama: projectId belum diisi di config.js, jadi konten tambahan hanya tersimpan di browser ini dan TIDAK tampil untuk pengunjung lain.", true);
+    return;
+  }
+  setSync("Memuat konten dari server...", true);
+  const r = await fetchRemote();
+  if (!r.ok) {
+    setSync("Tidak bisa memuat dari server (cek koneksi, database Firestore, dan Rules). Perubahan sementara hanya tersimpan di browser ini.", true);
+    return;
+  }
+  const local = JSON.parse(JSON.stringify(custom));            // draf lama di browser ini
+  custom = JSON.parse(JSON.stringify(REMOTE));
+  synced = new Map(); wantDocs().forEach((v, k) => synced.set(k, v));
+  let added = 0, migrated = false;
+  try { migrated = !!localStorage.getItem(MIGRATED_KEY); } catch (e) {}
+  if (!migrated) {                                             // pindahkan konten lama browser ini ke server (sekali saja)
+    local.lessons.forEach(l => { if (!custom.lessons.some(x => x.id === l.id)) { custom.lessons.push(l); added++; } });
+    local.questions.forEach(q => { if (!custom.questions.some(x => x.q === q.q)) { custom.questions.push(q); added++; } });
+  }
+  remoteReady = true;
+  render();
+  if (added) {
+    const ok = await queueSync();
+    if (ok) { try { localStorage.setItem(MIGRATED_KEY, "1"); } catch (e) {} msg(added + " konten lama di browser ini dipindahkan ke server."); }
+  } else {
+    try { localStorage.setItem(MIGRATED_KEY, "1"); } catch (e) {}
+    setSync("✓ Terhubung ke server. Perubahan otomatis tersimpan dan tampil untuk semua pengunjung.");
+  }
+  const n = $("storeNote");
+  if (n) n.textContent = "Materi dan soal tambahan tersimpan di server (Firestore), sehingga tampil untuk semua pengunjung.";
 }
 
 function msg(t, bad) {
@@ -149,7 +238,7 @@ function msg(t, bad) {
   if (t) { clearTimeout(msg.t); msg.t = setTimeout(() => (m.hidden = true), 4500); window.scrollTo({ top: 0, behavior: "smooth" }); }
 }
 
-function fileToDataURL(file, maxW = 800) {
+function fileToDataURL(file, maxW = 640) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
     r.onerror = reject;
@@ -161,7 +250,7 @@ function fileToDataURL(file, maxW = 800) {
         const c = document.createElement("canvas");
         c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
         c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL("image/jpeg", 0.8));
+        resolve(c.toDataURL("image/jpeg", 0.75));
       };
       img.src = r.result;
     };
@@ -345,6 +434,7 @@ function showApp() {
   $("login").hidden = true; $("app").hidden = false;
   renderPassStatus();
   render();
+  initRemote();
 }
 // Sesi hanya dipercaya jika token-nya lolos pemeriksaan ke server Firebase (bukan sekadar nilai di sessionStorage)
 (async () => {
