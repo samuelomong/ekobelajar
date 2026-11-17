@@ -32,13 +32,9 @@ function drawCertificate(o) {
     g.beginPath(); g.moveTo(x, y - 16); g.lineTo(x + 16, y); g.lineTo(x, y + 16); g.lineTo(x - 16, y); g.closePath(); g.fill();
   });
 
-  // logo + nama kampus
-  if (o.logo && o.logo.complete && o.logo.naturalWidth) {
-    const h = 110, w = h * o.logo.naturalWidth / o.logo.naturalHeight;
-    g.drawImage(o.logo, cx - w / 2, 92, w, h);
-  }
-  spaced(3, () => text((o.campusName || "").toUpperCase(), cx, 262, "700 34px " + CERT_SERIF, "#1f1b5c"));
-  if (o.campusSub) text(o.campusSub, cx, 298, "500 24px " + CERT_SANS, "#62607f");
+  // nama media belajar (tanpa logo/nama kampus)
+  spaced(8, () => text("EKOBELAJAR", cx, 250, "700 44px " + CERT_SERIF, "#1f1b5c"));
+  g.fillStyle = "#f4c20d"; g.fillRect(cx - 70, 280, 140, 4);
 
   // judul
   spaced(14, () => text("SERTIFIKAT", cx, 412, "700 100px " + CERT_SERIF, "#a62b4b"));
