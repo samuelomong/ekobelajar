@@ -323,20 +323,42 @@ function loadRemoteCache() {
     if (x) REMOTE = cleanData(x);
   } catch (e) {}
 }
-/* Ambil konten terbaru dari server. Mengembalikan { ok, map } ; map = isi mentah tiap dokumen (dipakai admin). */
+/* Terjemahkan error Firestore menjadi penyebab yang mudah dipahami */
+function explainFsError(status, body) {
+  const e = (body && body.error) || {};
+  const msg = String(e.message || ""), st = String(e.status || "");
+  const reasons = (e.details || []).map(x => x && x.reason).filter(Boolean).join(",");
+  const raw = " [" + (status || "?") + (st ? " " + st : "") + (reasons ? " " + reasons : "") + "]";
+  let why;
+  if (/API key not valid|API_KEY_INVALID/i.test(msg + reasons)) why = "apiKey di config.js tidak valid";
+  else if (/CONSUMER_INVALID/i.test(reasons) || /Permission denied on resource project/i.test(msg)) why = "projectId di config.js salah atau tidak cocok dengan apiKey";
+  else if (/has not been used|SERVICE_DISABLED|is disabled/i.test(msg + reasons)) why = "Cloud Firestore API belum diaktifkan di Google Cloud (aktifkan di APIs & Services > Library)";
+  else if (/API_KEY_SERVICE_BLOCKED|are blocked/i.test(msg + reasons)) why = "API key belum mengizinkan Cloud Firestore API (Google Cloud > Credentials > API restrictions)";
+  else if (/referer|API_KEY_HTTP_REFERRER_BLOCKED/i.test(msg + reasons)) why = "API key dibatasi domain, tambahkan domain situs ini di Website restrictions";
+  else if (status === 404 || /does not exist|NOT_FOUND/i.test(msg + st)) why = "database Firestore belum dibuat (Build > Firestore Database > Create database)";
+  else if (status === 403 || /PERMISSION_DENIED/i.test(st)) why = "Rules Firestore menolak. Pasang aturan 'allow read: if true' untuk koleksi konten, lalu Publish";
+  else why = msg || "kesalahan tidak dikenal";
+  return why + raw;
+}
+/* Ambil konten terbaru dari server. Mengembalikan { ok, map, error } ; map = isi mentah tiap dokumen (dipakai admin). */
 async function fetchRemote() {
-  if (!remoteEnabled()) return { ok: false, map: new Map() };
+  if (!remoteEnabled()) return { ok: false, map: new Map(), error: "projectId belum diisi" };
   const key = encodeURIComponent(window.FIREBASE_CONFIG.apiKey);
   let docs = [], token = "";
   try {
     do {
       const res = await fetch(fsDocUrl() + "?pageSize=300&key=" + key + (token ? "&pageToken=" + encodeURIComponent(token) : ""));
-      if (!res.ok) return { ok: false, map: new Map() };
+      if (!res.ok) {
+        let b = null; try { b = await res.json(); } catch (e) {}
+        return { ok: false, map: new Map(), error: explainFsError(res.status, b) };
+      }
       const j = await res.json();
       docs = docs.concat(j.documents || []);
       token = j.nextPageToken || "";
     } while (token);
-  } catch (e) { return { ok: false, map: new Map() }; }
+  } catch (e) {
+    return { ok: false, map: new Map(), error: "permintaan diblokir atau tidak ada koneksi (cek Console F12: kemungkinan Content-Security-Policy belum mengizinkan firestore.googleapis.com)" };
+  }
   const r = parseRemoteDocs(docs);
   REMOTE = r.data;
   try { localStorage.setItem(REMOTE_CACHE_KEY, JSON.stringify(REMOTE)); } catch (e) {}

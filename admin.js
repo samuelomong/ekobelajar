@@ -207,7 +207,7 @@ async function initRemote() {
   setSync("Memuat konten dari server...", true);
   const r = await fetchRemote();
   if (!r.ok) {
-    setSync("Tidak bisa memuat dari server (cek koneksi, database Firestore, dan Rules). Perubahan sementara hanya tersimpan di browser ini.", true);
+    setSync("Tidak bisa memuat dari server. Penyebab: " + r.error + ". Perubahan sementara hanya tersimpan di browser ini.", true);
     return;
   }
   const local = JSON.parse(JSON.stringify(custom));            // draf lama di browser ini
