@@ -38,4 +38,4 @@ window.FIREBASE_CONFIG = {
 
 /* Email untuk saran dan umpan balik, ditampilkan di bagian Tentang pada website.
    Kosongkan ("") jika tidak ingin menampilkan bagian kontak. */
-window.CONTACT_EMAIL = "";
+window.CONTACT_EMAIL = "julalroomong28@gmail.com";
