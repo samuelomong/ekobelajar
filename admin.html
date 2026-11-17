@@ -35,76 +35,121 @@
   </section>
 
   <!-- ===== DASHBOARD ===== -->
-  <div id="app" hidden>
-    <header class="ad-top">
-      <div class="container ad-top-in">
-        <div class="ad-brand"><img src="logo-unima.png" alt=""><div><b>Dashboard Admin</b><small>EkoBelajar</small></div></div>
-        <div class="ad-top-actions">
-          <a href="index.html" target="_blank" rel="noopener" class="ad-link">Lihat website</a>
-          <button type="button" id="logoutBtn" class="ad-ghost">Keluar</button>
-        </div>
-      </div>
-    </header>
+  <div id="app" class="ad-shell" hidden>
 
-    <main class="container ad-main">
+    <aside class="ad-side">
+      <div class="ad-brand">
+        <img src="logo-unima.png" alt="">
+        <div><b>EkoBelajar</b><small>Dashboard admin</small></div>
+      </div>
+
+      <nav class="ad-tabs" id="tabs" aria-label="Menu dashboard">
+        <button type="button" data-tab="lesson" class="active">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg>
+          Materi
+        </button>
+        <button type="button" data-tab="quiz">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.6 2.4c-.7.4-1.1.9-1.1 1.6"/><path d="M12 17h.01"/></svg>
+          Kuis
+        </button>
+        <button type="button" data-tab="security">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
+          Keamanan
+        </button>
+      </nav>
+
+      <div class="ad-side-foot">
+        <a href="index.html" target="_blank" rel="noopener" class="ad-link">Lihat website</a>
+        <button type="button" id="logoutBtn" class="ad-ghost">Keluar</button>
+      </div>
+    </aside>
+
+    <main class="ad-main">
+      <header class="ad-head">
+        <h1>Kelola konten belajar</h1>
+        <p>Tambah, ubah, atau hapus materi dan soal kuis yang tampil di website.</p>
+      </header>
 
       <div class="ad-stats" id="stats"></div>
-
-      <div class="ad-tabs" id="tabs">
-        <button data-tab="lesson" class="active">Materi</button>
-        <button data-tab="quiz">Kuis</button>
-        <button data-tab="security">Keamanan</button>
-      </div>
-      <div id="adMsg" class="ad-msg" hidden></div>
+      <div id="adMsg" class="ad-msg" role="status" hidden></div>
 
       <!-- MATERI -->
-      <section data-pane="lesson" class="ad-card">
-        <h2 id="lfHeading">Tambah Materi Baru</h2>
-        <form id="lessonForm" class="ad-form" autocomplete="off">
-          <input type="hidden" id="lfId">
-          <label>Judul materi *<input id="lfTitle" required placeholder="mis. Elastisitas Permintaan"></label>
-          <div class="ad-row">
-            <label>Topik *<input id="lfTopic" list="topicList" required placeholder="mis. Mikroekonomi"><datalist id="topicList"></datalist></label>
-            <label>Menit baca<input id="lfMin" type="number" min="1" max="60" value="3"></label>
-          </div>
-          <label>Ringkasan singkat<input id="lfSummary" placeholder="Satu kalimat untuk kartu materi"></label>
-          <label>Link video YouTube (opsional)<input id="lfVideo" placeholder="https://www.youtube.com/watch?v=..."></label>
-          <div class="ad-row">
-            <label>Foto/thumbnail (upload)<input id="lfFile" type="file" accept="image/*"></label>
-            <label>atau URL foto<input id="lfImgUrl" placeholder="https://..."></label>
-          </div>
-          <small class="ad-hint">Kosongkan foto jika ada video: thumbnail asli YouTube dipakai otomatis.</small>
-          <label>Isi materi *<textarea id="lfContent" rows="9" required placeholder="Tulis paragraf biasa.&#10;Baris kosong = paragraf baru.&#10;## Subjudul&#10;- poin daftar&#10;- **kata tebal**"></textarea></label>
-          <label>Poin penting (satu poin per baris)<textarea id="lfPoints" rows="3"></textarea></label>
-          <div class="ad-actions">
-            <button type="submit" class="ad-primary" id="lfSubmit">Tambah Materi</button>
-            <button type="button" id="lfCancel" hidden>Batal edit</button>
-          </div>
-        </form>
-        <h3 class="ad-h">Daftar materi</h3>
-        <div id="lessonList" class="ad-list"></div>
+      <section data-pane="lesson" class="ad-split">
+        <div class="ad-card">
+          <h2 id="lfHeading">Tambah Materi Baru</h2>
+          <form id="lessonForm" class="ad-form" autocomplete="off">
+            <input type="hidden" id="lfId">
+
+            <div class="ad-group">
+              <h3>Informasi dasar</h3>
+              <label>Judul materi *<input id="lfTitle" required placeholder="mis. Elastisitas Permintaan"></label>
+              <div class="ad-row">
+                <label>Topik *<input id="lfTopic" list="topicList" required placeholder="mis. Mikroekonomi"><datalist id="topicList"></datalist></label>
+                <label>Menit baca<input id="lfMin" type="number" min="1" max="60" value="3"></label>
+              </div>
+              <label>Ringkasan singkat<input id="lfSummary" placeholder="Satu kalimat untuk kartu materi"></label>
+            </div>
+
+            <div class="ad-group">
+              <h3>Gambar dan video</h3>
+              <label>Link video YouTube (opsional)<input id="lfVideo" placeholder="https://www.youtube.com/watch?v=..."></label>
+              <div class="ad-row">
+                <label>Foto/thumbnail (upload)<input id="lfFile" type="file" accept="image/*"></label>
+                <label>atau URL foto<input id="lfImgUrl" placeholder="https://..."></label>
+              </div>
+              <small class="ad-hint">Kosongkan foto jika ada video: thumbnail asli YouTube dipakai otomatis.</small>
+            </div>
+
+            <div class="ad-group">
+              <h3>Isi materi</h3>
+              <label>Isi materi *<textarea id="lfContent" rows="9" required placeholder="Tulis paragraf biasa.&#10;Baris kosong = paragraf baru.&#10;## Subjudul&#10;- poin daftar&#10;- **kata tebal**"></textarea></label>
+              <label>Poin penting (satu poin per baris)<textarea id="lfPoints" rows="3"></textarea></label>
+            </div>
+
+            <div class="ad-actions">
+              <button type="submit" class="ad-primary" id="lfSubmit">Tambah Materi</button>
+              <button type="button" id="lfCancel" hidden>Batal edit</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="ad-card ad-listcard">
+          <h2>Daftar materi</h2>
+          <div id="lessonList" class="ad-list"></div>
+        </div>
       </section>
 
       <!-- KUIS -->
-      <section data-pane="quiz" class="ad-card" hidden>
-        <h2 id="qfHeading">Tambah Soal Kuis</h2>
-        <form id="quizForm" class="ad-form" autocomplete="off">
-          <input type="hidden" id="qfIdx">
-          <label>Pertanyaan *<textarea id="qfQ" rows="2" required></textarea></label>
-          <p class="ad-hint">Isi 2–4 pilihan, lalu klik bulatan di kiri untuk menandai jawaban yang benar.</p>
-          <div id="qfOpts"></div>
-          <label>Penjelasan jawaban (opsional)<input id="qfWhy"></label>
-          <div class="ad-actions">
-            <button type="submit" class="ad-primary" id="qfSubmit">Tambah Soal</button>
-            <button type="button" id="qfCancel" hidden>Batal edit</button>
-          </div>
-        </form>
-        <h3 class="ad-h">Daftar soal</h3>
-        <div id="quizList" class="ad-list"></div>
+      <section data-pane="quiz" class="ad-split" hidden>
+        <div class="ad-card">
+          <h2 id="qfHeading">Tambah Soal Kuis</h2>
+          <form id="quizForm" class="ad-form" autocomplete="off">
+            <input type="hidden" id="qfIdx">
+            <div class="ad-group">
+              <h3>Soal</h3>
+              <label>Pertanyaan *<textarea id="qfQ" rows="2" required></textarea></label>
+            </div>
+            <div class="ad-group">
+              <h3>Pilihan jawaban</h3>
+              <p class="ad-hint">Isi 2–4 pilihan, lalu klik bulatan di kanan untuk menandai jawaban yang benar.</p>
+              <div id="qfOpts"></div>
+              <label>Penjelasan jawaban (opsional)<input id="qfWhy"></label>
+            </div>
+            <div class="ad-actions">
+              <button type="submit" class="ad-primary" id="qfSubmit">Tambah Soal</button>
+              <button type="button" id="qfCancel" hidden>Batal edit</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="ad-card ad-listcard">
+          <h2>Daftar soal</h2>
+          <div id="quizList" class="ad-list"></div>
+        </div>
       </section>
 
       <!-- KEAMANAN -->
-      <section data-pane="security" class="ad-card" hidden>
+      <section data-pane="security" class="ad-card ad-secure" hidden>
         <h2>Ganti kata sandi</h2>
         <div id="passStatus" class="ad-status"></div>
         <form id="passForm" class="ad-form narrow" autocomplete="off">
