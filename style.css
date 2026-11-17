@@ -316,40 +316,5 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after { transit
 [data-theme="dark"] .open-link { color: #ff93ad; }
 [data-theme="dark"] .result .big { color: #ff93ad; }
 
-/* ===== Sertifikat ===== */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 a.next { display: inline-block; text-decoration: none; }
-.cert-h { font-size: 1.5rem; color: var(--head); margin: 6px 0 2px; }
-.cert-form { display: flex; gap: 10px; flex-wrap: wrap; }
-.cert-form input { flex: 1 1 220px; padding: 11px 16px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; font: inherit; }
-.cert-form input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(75,68,184,.18); }
-.cert-form .next { margin-top: 0; }
-#certImg { width: 100%; height: auto; display: block; margin-top: 18px; border-radius: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
-.cert-actions { margin-top: 14px; text-align: center; }
-.cert-tip { text-align: center; margin-top: 10px; font-weight: 500; font-size: .85rem; color: var(--muted); }
-#certOut[hidden], #certErr[hidden] { display: none; }
-#certErr { margin-top: 12px; }
-.cert-box { background: var(--tint); border-radius: 12px; padding: 14px 18px; margin: 16px auto 0; max-width: 440px; text-align: left; }
-.cert-box b { color: var(--head); }
-.cert-box.ok { background: var(--ok-bg); border: 1.5px solid var(--ok); text-align: center; }
-.cert-box.ok .next { margin-top: 10px; display: block; margin-left: auto; margin-right: auto; }
-.cert-req { list-style: none; margin-top: 6px; }
-.cert-req li { position: relative; padding-left: 26px; font-size: .9rem; color: var(--muted); }
-.cert-req li::before { content: "○"; position: absolute; left: 4px; }
-.cert-req li.y { color: var(--ok); font-weight: 600; }
-.cert-req li.y::before { content: "✓"; }
-.cert-peek { margin-top: 10px; background: none; border: 1.5px solid var(--line); color: var(--head); font: inherit; font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 10px; cursor: pointer; }
-.cert-peek:hover { border-color: var(--primary-light); }
-#certPreviewImg { width: 100%; height: auto; display: block; margin-top: 14px; border-radius: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
-#certPreviewImg:not([src]) { display: none; }
-#certPreviewLoad[hidden], #certPreviewModal[hidden] { display: none; }
-
-.gate-box { width: min(460px, 100%); }
-.gate-form { display: grid; gap: 8px; margin-top: 12px; }
-.gate-form label { font-weight: 600; font-size: .9rem; color: var(--head); }
-.gate-opt { font-weight: 500; color: var(--muted); }
-.gate-form input { padding: 11px 16px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; font: inherit; }
-.gate-form input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(75,68,184,.18); }
-.gate-form .next { margin-top: 8px; }
-.gate-note { font-size: .8rem; color: var(--muted); text-align: center; }
-.gate-form .qr-warn[hidden] { display: none; }

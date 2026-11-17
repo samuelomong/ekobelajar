@@ -172,8 +172,7 @@ $("nextLesson").onclick = () => step(1);
 $("doneLesson").onclick = () => {
   const adding = !done.has(currentId);
   if (adding) done.add(currentId); else done.delete(currentId);
-  saveDone(); refreshDoneBtn(); updateProgress(); renderCards(); refreshCertSlot();
-  if (adding && window.Track) { const L = lessons.find(x => x.id === currentId); Track.log("materi", L ? L.title : ""); }
+  saveDone(); refreshDoneBtn(); updateProgress(); renderCards();
   if (adding && window.FX) {
     const r = $("doneLesson").getBoundingClientRect();
     FX.burst(r.left + r.width / 2, r.top, 45);
@@ -209,31 +208,6 @@ function stopTimer() { clearInterval(quizTimer); quizTimer = 0; }
 function tick() { const t = $("qTimer"); if (t) t.textContent = fmtTime(Date.now() - quizStart); }
 function pop(el) { if (!el) return; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
 
-/* ---------- Sertifikat: syarat = semua materi selesai + skor kuis terbaik >= 80% ---------- */
-const CERT_MIN = 0.8;
-function certStatus() {
-  const doneCount = lessons.filter(l => done.has(l.id)).length;
-  const best = readBest();
-  const lessonsOk = lessons.length > 0 && doneCount === lessons.length;
-  const scoreOk = !!best && best.score / best.total >= CERT_MIN;
-  return { doneCount, total: lessons.length, lessonsOk, scoreOk, best, ok: lessonsOk && scoreOk };
-}
-function certBoxHTML() {
-  const s = certStatus();
-  if (s.ok) return `<div class="cert-box ok"><b>🎓 Sertifikat terbuka!</b><button class="next" id="openCert">Klaim sertifikat</button><br><button type="button" class="cert-peek" id="peekCert">👁 Lihat contoh sertifikat</button></div>`;
-  return `<div class="cert-box"><b>🎓 Raih sertifikat</b><ul class="cert-req">
-    <li class="${s.lessonsOk ? "y" : ""}">Selesaikan semua materi (${s.doneCount}/${s.total})</li>
-    <li class="${s.scoreOk ? "y" : ""}">Skor kuis minimal ${Math.round(CERT_MIN * 100)}%</li></ul>
-    <button type="button" class="cert-peek" id="peekCert">👁 Lihat contoh sertifikat</button></div>`;
-}
-function refreshCertSlot() {
-  const slot = $("certSlot");
-  if (!slot || !questions.length) return;
-  slot.innerHTML = certBoxHTML();
-  const b = $("openCert"); if (b) b.onclick = openCert;
-  const pk = $("peekCert"); if (pk) pk.onclick = openCertPreview;
-}
-
 function showIntro() {
   stopTimer();
   if (!questions.length) { quizEl.innerHTML = '<p class="info">Belum ada soal kuis.</p>'; return; }
@@ -245,10 +219,8 @@ function showIntro() {
       <p class="info">${questions.length} soal pilihan ganda · waktu dihitung</p>
       ${best ? `<p class="best">🏆 Rekor terbaik: ${best.score}/${best.total} dalam ${fmtTime(best.ms)}</p><br>` : ""}
       <button class="next" id="startQuiz">Mulai kuis</button>
-      <div id="certSlot"></div>
     </div>`;
   $("startQuiz").onclick = startQuiz;
-  refreshCertSlot();
 }
 
 function startQuiz() {
@@ -265,7 +237,6 @@ function showResult() {
   const old = readBest();
   const isBest = !old || score > old.score || (score === old.score && ms < old.ms);
   if (isBest) saveBest({ score, total, ms });
-  if (window.Track) Track.log("kuis", score + "/" + total + " · " + fmtTime(ms));
   const best = isBest ? { score, ms, total } : old;
   quizEl.innerHTML = `
     <div class="result">
@@ -279,10 +250,8 @@ function showResult() {
       <p>${msg}</p>
       ${isBest && score > 0 ? `<p class="best">🏆 Rekor baru!</p>` : best ? `<p class="best">🏆 Rekor terbaik: ${best.score}/${best.total} · ${fmtTime(best.ms)}</p>` : ""}<br>
       <button class="next" id="retry">Ulangi kuis</button>
-      <div id="certSlot"></div>
     </div>`;
   $("retry").onclick = startQuiz;
-  refreshCertSlot();
   // hitung naik dari 0 sampai skor akhir
   const el = $("scoreNum");
   if (matchMedia("(prefers-reduced-motion: reduce)").matches || score === 0) el.textContent = score;
@@ -440,71 +409,3 @@ $("qrCopy").onclick = () => {
   const ok = () => FX.toast("Tautan disalin ✓"), fail = () => FX.toast("Gagal menyalin. Salin manual dari teks di atas");
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(ok, fail); else fail();
 };
-
-
-/* ==========================================================
-   SERTIFIKAT (klaim setelah syarat terpenuhi)
-   ========================================================== */
-const certModal = $("certModal");
-function openCert() {
-  const s = certStatus();
-  if (!s.ok) return;                                   // syarat dicek ulang, bukan sekadar tombol
-  $("certName").value = (window.Track && Track.name()) || ""; $("certErr").hidden = true; $("certOut").hidden = true; $("certMake").textContent = "Buat sertifikat";
-  certModal.hidden = false; document.body.style.overflow = "hidden";
-  $("certName").focus();
-}
-function closeCert() {
-  certModal.hidden = true; document.body.style.overflow = "";
-  $("certName").value = ""; $("certImg").removeAttribute("src"); $("certOut").hidden = true;   // hapus nama (laptop dipakai bergantian)
-}
-async function makeCert() {
-  const s = certStatus(), err = $("certErr");
-  if (!s.ok) { err.textContent = "Syarat sertifikat belum terpenuhi."; err.hidden = false; return; }
-  const name = $("certName").value.replace(/\s+/g, " ").trim().slice(0, 30);
-  if (!name) { err.textContent = "Tulis namamu dulu ya."; err.hidden = false; $("certName").focus(); return; }
-  err.hidden = true;
-  $("certMake").disabled = true;
-  await certFontsReady();
-  const logo = $("campusLogo");
-  const serial = "EKO-" + new Date().getFullYear() + "-" + String(Math.floor(1000 + Math.random() * 9000));
-  const url = certToDataURL({
-    name, score: s.best.score, total: s.best.total,
-    dateStr: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-    serial,
-    campusName: CAMPUS.name, campusSub: CAMPUS.sub, logo: logo && logo.complete ? logo : null
-  });
-  if (window.Track) Track.log("sertifikat", name + " · " + s.best.score + "/" + s.best.total + " · " + serial);
-  $("certImg").src = url;
-  $("certDl").href = url;
-  $("certDl").download = "sertifikat-ekobelajar-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".png";
-  $("certOut").hidden = false;
-  $("certMake").disabled = false; $("certMake").textContent = "Buat ulang";
-  if (window.FX) { FX.celebrate(true); FX.toast("Sertifikat siap! 🎓"); }
-  $("certOut").scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-$("closeCert").onclick = closeCert;
-$("certMake").onclick = makeCert;
-$("certName").addEventListener("keydown", e => { if (e.key === "Enter") makeCert(); });
-certModal.addEventListener("click", e => { if (e.target === certModal) closeCert(); });
-document.addEventListener("keydown", e => { if (!certModal.hidden && e.key === "Escape") closeCert(); });
-
-/* ---------- Pratinjau sertifikat (contoh, tanpa syarat) ---------- */
-const certPreviewModal = $("certPreviewModal");
-async function openCertPreview() {
-  certPreviewModal.hidden = false; document.body.style.overflow = "hidden";
-  const img = $("certPreviewImg"); img.removeAttribute("src");
-  $("certPreviewLoad").hidden = false;
-  await certFontsReady();
-  const logo = $("campusLogo");
-  img.src = certToDataURL({
-    preview: true, name: "Nama Lengkap Kamu", score: questions.length || 10, total: questions.length || 10,
-    dateStr: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-    serial: "EKO-" + new Date().getFullYear() + "-0000",
-    campusName: CAMPUS.name, campusSub: CAMPUS.sub, logo: logo && logo.complete ? logo : null
-  });
-  $("certPreviewLoad").hidden = true;
-}
-function closeCertPreview() { certPreviewModal.hidden = true; document.body.style.overflow = ""; $("certPreviewImg").removeAttribute("src"); }
-$("closeCertPreview").onclick = closeCertPreview;
-certPreviewModal.addEventListener("click", e => { if (e.target === certPreviewModal) closeCertPreview(); });
-document.addEventListener("keydown", e => { if (!certPreviewModal.hidden && e.key === "Escape") closeCertPreview(); });

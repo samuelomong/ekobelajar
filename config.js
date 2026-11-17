@@ -13,15 +13,8 @@
           .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join("")))
    7. Google Cloud Console -> APIs & Services -> Credentials -> klik API key tersebut -> "Website restrictions",
       isi domain website Anda saja. Batasi juga ke "Identity Toolkit API".
-   8. Upload config.js, admin.html, admin.js ke hosting.
-
-   PENCATATAN PENGUNJUNG (nama pengunjung terlihat di dashboard admin, tab "Pengunjung"):
-   a. Firebase Console -> Build -> Firestore Database -> Create database (mode produksi).
-   b. Tab "Rules": tempel isi file firestore.rules, lalu Publish.
-   c. Isi projectId di bawah dengan Project ID proyek Firebase Anda.
-   Selama projectId kosong, pencatatan dan formulir nama nonaktif. */
+   8. Upload config.js, admin.html, admin.js ke hosting. */
 window.FIREBASE_CONFIG = {
-  projectId: "",                                          // ID proyek Firebase (Project settings -> General -> Project ID). Isi agar pencatatan pengunjung aktif.
   apiKey: "AIzaSyBSj_7rZ6nT47UV2ScycydDk_CtoGH0pKE",       // contoh: "AIzaSy..."
   adminEmailHash: "6f30d5a548aa6502d539b22cce28175059db974df410c67841107b178afddb68"   // SHA-256 email admin
 };

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; frame-src https://www.youtube.com; connect-src 'self' https://identitytoolkit.googleapis.com https://firestore.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; frame-src https://www.youtube.com; connect-src 'self' https://identitytoolkit.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <script src="security.js"></script>
   <title>Dashboard Admin - EkoBelajar</title>
@@ -53,7 +53,6 @@
       <div class="ad-tabs" id="tabs">
         <button data-tab="lesson" class="active">Materi</button>
         <button data-tab="quiz">Kuis</button>
-        <button data-tab="visitors">Pengunjung</button>
         <button data-tab="security">Keamanan</button>
       </div>
       <div id="adMsg" class="ad-msg" hidden></div>
@@ -104,20 +103,6 @@
         <div id="quizList" class="ad-list"></div>
       </section>
 
-      <!-- PENGUNJUNG -->
-      <section data-pane="visitors" class="ad-card" hidden>
-        <h2>Pengunjung &amp; aktivitas</h2>
-        <div id="visStats" class="vis-stats"></div>
-        <div class="vis-bar">
-          <input type="search" id="visSearch" placeholder="Cari nama / kelas...">
-          <select id="visType"><option value="">Semua aktivitas</option><option value="masuk">Masuk</option><option value="materi">Materi selesai</option><option value="kuis">Kuis</option><option value="sertifikat">Sertifikat</option></select>
-          <button type="button" id="visRefresh">Muat ulang</button>
-          <button type="button" id="visCsv">Unduh CSV</button>
-        </div>
-        <div id="visMsg" class="ad-hint"></div>
-        <div class="vis-wrap"><table class="vis-table"><thead><tr><th>Waktu</th><th>Nama</th><th>Kelas / NIM</th><th>Aktivitas</th><th>Detail</th></tr></thead><tbody id="visBody"></tbody></table></div>
-      </section>
-
       <!-- KEAMANAN -->
       <section data-pane="security" class="ad-card" hidden>
         <h2>Ganti kata sandi</h2>
@@ -140,6 +125,5 @@
   <script src="config.js"></script>
   <script src="data.js"></script>
   <script src="admin.js"></script>
-  <script src="visitors.js"></script>
 </body>
 </html>
