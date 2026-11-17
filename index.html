@@ -209,6 +209,19 @@
     </div>
   </div>
 
+  <!-- Modal pratinjau sertifikat -->
+  <div id="certPreviewModal" class="modal cert-modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="certPreviewTitle">
+      <button id="closeCertPreview" class="close" aria-label="Tutup">&times;</button>
+      <div class="modal-pad">
+        <h3 id="certPreviewTitle" class="cert-h">Contoh sertifikat</h3>
+        <p class="qr-sub">Beginilah tampilan sertifikatmu. Namamu akan tertulis setelah syarat terpenuhi.</p>
+        <p id="certPreviewLoad" class="info">Menyiapkan pratinjau...</p>
+        <img id="certPreviewImg" alt="Contoh sertifikat penyelesaian EkoBelajar">
+      </div>
+    </div>
+  </div>
+
   <script src="qrcode.js"></script>
   <script src="certificate.js"></script>
   <script src="effects.js"></script>

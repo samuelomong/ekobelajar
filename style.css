@@ -338,3 +338,8 @@ a.next { display: inline-block; text-decoration: none; }
 .cert-req li::before { content: "○"; position: absolute; left: 4px; }
 .cert-req li.y { color: var(--ok); font-weight: 600; }
 .cert-req li.y::before { content: "✓"; }
+.cert-peek { margin-top: 10px; background: none; border: 1.5px solid var(--line); color: var(--head); font: inherit; font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 10px; cursor: pointer; }
+.cert-peek:hover { border-color: var(--primary-light); }
+#certPreviewImg { width: 100%; height: auto; display: block; margin-top: 14px; border-radius: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+#certPreviewImg:not([src]) { display: none; }
+#certPreviewLoad[hidden], #certPreviewModal[hidden] { display: none; }

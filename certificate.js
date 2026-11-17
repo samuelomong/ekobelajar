@@ -71,6 +71,14 @@ function drawCertificate(o) {
   text("Nomor", W - 190, 905, "600 20px " + CERT_SANS, "#62607f", "right");
   text(o.serial, W - 190, 942, "700 30px " + CERT_SERIF, "#1f1b5c", "right");
   text(CERT_CREDIT, cx, 1049, "500 21px " + CERT_SANS, "#62607f");
+
+  // cap "CONTOH" miring untuk pratinjau (bukan sertifikat asli)
+  if (o.preview) {
+    g.save(); g.translate(cx, H / 2); g.rotate(-Math.PI / 9);
+    g.globalAlpha = 0.13;
+    spaced(24, () => text("CONTOH", 0, 60, "700 230px " + CERT_SANS, "#a62b4b"));
+    g.restore();
+  }
   return c;
 }
 

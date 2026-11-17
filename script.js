@@ -219,16 +219,18 @@ function certStatus() {
 }
 function certBoxHTML() {
   const s = certStatus();
-  if (s.ok) return `<div class="cert-box ok"><b>🎓 Sertifikat terbuka!</b><button class="next" id="openCert">Klaim sertifikat</button></div>`;
+  if (s.ok) return `<div class="cert-box ok"><b>🎓 Sertifikat terbuka!</b><button class="next" id="openCert">Klaim sertifikat</button><br><button type="button" class="cert-peek" id="peekCert">👁 Lihat contoh sertifikat</button></div>`;
   return `<div class="cert-box"><b>🎓 Raih sertifikat</b><ul class="cert-req">
     <li class="${s.lessonsOk ? "y" : ""}">Selesaikan semua materi (${s.doneCount}/${s.total})</li>
-    <li class="${s.scoreOk ? "y" : ""}">Skor kuis minimal ${Math.round(CERT_MIN * 100)}%</li></ul></div>`;
+    <li class="${s.scoreOk ? "y" : ""}">Skor kuis minimal ${Math.round(CERT_MIN * 100)}%</li></ul>
+    <button type="button" class="cert-peek" id="peekCert">👁 Lihat contoh sertifikat</button></div>`;
 }
 function refreshCertSlot() {
   const slot = $("certSlot");
   if (!slot || !questions.length) return;
   slot.innerHTML = certBoxHTML();
   const b = $("openCert"); if (b) b.onclick = openCert;
+  const pk = $("peekCert"); if (pk) pk.onclick = openCertPreview;
 }
 
 function showIntro() {
@@ -481,3 +483,24 @@ $("certMake").onclick = makeCert;
 $("certName").addEventListener("keydown", e => { if (e.key === "Enter") makeCert(); });
 certModal.addEventListener("click", e => { if (e.target === certModal) closeCert(); });
 document.addEventListener("keydown", e => { if (!certModal.hidden && e.key === "Escape") closeCert(); });
+
+/* ---------- Pratinjau sertifikat (contoh, tanpa syarat) ---------- */
+const certPreviewModal = $("certPreviewModal");
+async function openCertPreview() {
+  certPreviewModal.hidden = false; document.body.style.overflow = "hidden";
+  const img = $("certPreviewImg"); img.removeAttribute("src");
+  $("certPreviewLoad").hidden = false;
+  await certFontsReady();
+  const logo = $("campusLogo");
+  img.src = certToDataURL({
+    preview: true, name: "Nama Lengkap Kamu", score: questions.length || 10, total: questions.length || 10,
+    dateStr: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
+    serial: "EKO-" + new Date().getFullYear() + "-0000",
+    campusName: CAMPUS.name, campusSub: CAMPUS.sub, logo: logo && logo.complete ? logo : null
+  });
+  $("certPreviewLoad").hidden = true;
+}
+function closeCertPreview() { certPreviewModal.hidden = true; document.body.style.overflow = ""; $("certPreviewImg").removeAttribute("src"); }
+$("closeCertPreview").onclick = closeCertPreview;
+certPreviewModal.addEventListener("click", e => { if (e.target === certPreviewModal) closeCertPreview(); });
+document.addEventListener("keydown", e => { if (!certPreviewModal.hidden && e.key === "Escape") closeCertPreview(); });
