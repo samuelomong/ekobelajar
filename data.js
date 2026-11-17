@@ -5,7 +5,7 @@
    ========================================================== */
 const CAMPUS = {
   name: "Universitas Negeri Manado",
-  sub: "Media Pembelajaran Ekonomi",
+  sub: "Fakultas Ekonomi dan Bisnis",
   logo: "logo-unima.png"
 };
 

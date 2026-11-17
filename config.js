@@ -35,3 +35,7 @@ window.FIREBASE_CONFIG = {
   projectId: "ekobelajar-53764",   // contoh: "ekobelajar-12345" (Project ID Firebase, bukan API key)
   adminEmailHash: "6f30d5a548aa6502d539b22cce28175059db974df410c67841107b178afddb68"   // SHA-256 email admin
 };
+
+/* Email untuk saran dan umpan balik, ditampilkan di bagian Tentang pada website.
+   Kosongkan ("") jika tidak ingin menampilkan bagian kontak. */
+window.CONTACT_EMAIL = "";

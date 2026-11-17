@@ -313,12 +313,25 @@ function renderQuestion() {
 }
 
 /* ==========================================================
+   BAGIAN TENTANG: kontak umpan balik (tampil hanya jika CONTACT_EMAIL diisi di config.js)
+   ========================================================== */
+function initContact() {
+  const box = $("aboutContact"), a = $("contactLink");
+  const mail = String(window.CONTACT_EMAIL || "").trim();
+  if (!box || !a || !/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(mail)) return;
+  a.textContent = mail;
+  a.href = "mailto:" + mail + "?subject=" + encodeURIComponent("Saran untuk EkoBelajar");
+  box.hidden = false;
+}
+
+/* ==========================================================
    INISIALISASI
    ========================================================== */
 $("year").textContent = new Date().getFullYear();
 updateProgress();
 renderFilters();
 renderCards();
+initContact();
 showIntro();
 
 /* Konten bersama dari server (Firestore): ditampilkan dulu dari cache, lalu diperbarui bila ada yang baru */
