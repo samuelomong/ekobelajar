@@ -32,6 +32,6 @@
    9. Upload config.js, index.html, script.js, data.js, admin.html, admin.js ke hosting. */
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBSj_7rZ6nT47UV2ScycydDk_CtoGH0pKE",       // contoh: "AIzaSy..."
-  projectId: "",   // contoh: "ekobelajar-12345" (Project ID Firebase, bukan API key)
+  projectId: "ekobelajar-53764",   // contoh: "ekobelajar-12345" (Project ID Firebase, bukan API key)
   adminEmailHash: "6f30d5a548aa6502d539b22cce28175059db974df410c67841107b178afddb68"   // SHA-256 email admin
 };
