@@ -36,6 +36,6 @@ window.FIREBASE_CONFIG = {
   adminEmailHash: "6f30d5a548aa6502d539b22cce28175059db974df410c67841107b178afddb68"   // SHA-256 email admin
 };
 
-/* Email untuk saran dan umpan balik, ditampilkan di bagian Tentang pada website.
+/* Email untuk saran dan umpan balik, dipakai oleh tombol "Kirim saran lewat email" di bagian Tentang (alamatnya tidak ditampilkan di halaman).
    Kosongkan ("") jika tidak ingin menampilkan bagian kontak. */
 window.CONTACT_EMAIL = "julalroomong28@gmail.com";

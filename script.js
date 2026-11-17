@@ -319,8 +319,11 @@ function initContact() {
   const box = $("aboutContact"), a = $("contactLink");
   const mail = String(window.CONTACT_EMAIL || "").trim();
   if (!box || !a || !/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(mail)) return;
-  a.textContent = mail;
-  a.href = "mailto:" + mail + "?subject=" + encodeURIComponent("Saran untuk EkoBelajar");
+  /* Alamat email tidak ditampilkan di halaman; baru dipakai saat tautan diklik */
+  a.addEventListener("click", e => {
+    e.preventDefault();
+    window.location.href = "mailto:" + mail + "?subject=" + encodeURIComponent("Saran untuk EkoBelajar");
+  });
   box.hidden = false;
 }
 
