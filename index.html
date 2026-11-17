@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; frame-src https://www.youtube.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' data:; frame-src https://www.youtube.com; connect-src 'self' https://firestore.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <script src="security.js"></script>
   <script src="theme.js"></script>
@@ -222,10 +222,12 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script src="qrcode.js"></script>
   <script src="certificate.js"></script>
   <script src="effects.js"></script>
   <script src="data.js"></script>
   <script src="script.js"></script>
+  <script src="tracker.js"></script>
 </body>
 </html>

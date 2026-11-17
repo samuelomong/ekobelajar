@@ -75,3 +75,18 @@
 .ad-msg { padding: 10px 14px; border-radius: 10px; background: #e8f7ee; color: #14532d; font-weight: 600; font-size: .88rem; margin-bottom: 12px; }
 .ad-msg.bad { background: #fdecec; color: #8f1d1d; }
 @media (max-width: 640px) { .ad-card { padding: 18px 16px 22px; } .ad-link { display: none; } }
+.vis-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.vis-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.vis-bar input, .vis-bar select { padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; background: #fff; }
+.vis-bar input { flex: 1 1 200px; }
+.vis-bar button { padding: 9px 16px; border-radius: 8px; border: 1.5px solid var(--line); background: #fff; font: 700 .85rem var(--sans); cursor: pointer; }
+.vis-bar button:hover { border-color: var(--navy); }
+.vis-wrap { overflow-x: auto; margin-top: 8px; }
+.vis-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.vis-table th, .vis-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.vis-table td:last-child { white-space: normal; }
+.vis-table th { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.vis-tag { padding: 2px 9px; border-radius: 999px; background: var(--tint); font-size: .78rem; font-weight: 700; color: var(--navy); }
+.vis-tag.sertifikat { background: #fff3c4; color: #7a5b00; }
+.vis-tag.kuis { background: #e0f2fe; color: #075985; }
+.vis-tag.materi { background: var(--ok-bg); color: var(--ok); }

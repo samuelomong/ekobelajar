@@ -343,3 +343,13 @@ a.next { display: inline-block; text-decoration: none; }
 #certPreviewImg { width: 100%; height: auto; display: block; margin-top: 14px; border-radius: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
 #certPreviewImg:not([src]) { display: none; }
 #certPreviewLoad[hidden], #certPreviewModal[hidden] { display: none; }
+
+.gate-box { width: min(460px, 100%); }
+.gate-form { display: grid; gap: 8px; margin-top: 12px; }
+.gate-form label { font-weight: 600; font-size: .9rem; color: var(--head); }
+.gate-opt { font-weight: 500; color: var(--muted); }
+.gate-form input { padding: 11px 16px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; font: inherit; }
+.gate-form input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(75,68,184,.18); }
+.gate-form .next { margin-top: 8px; }
+.gate-note { font-size: .8rem; color: var(--muted); text-align: center; }
+.gate-form .qr-warn[hidden] { display: none; }

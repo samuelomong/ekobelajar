@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pengunjung hanya boleh MENAMBAH catatan (dengan format yang dibatasi). Hanya admin yang login yang boleh MEMBACA.
+    match /aktivitas/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['nama','kelas','jenis','detail','waktu','vid'])
+        && request.resource.data.nama is string && request.resource.data.nama.size() > 0 && request.resource.data.nama.size() <= 40
+        && request.resource.data.kelas is string && request.resource.data.kelas.size() <= 30
+        && request.resource.data.jenis in ['masuk','materi','kuis','sertifikat']
+        && request.resource.data.detail is string && request.resource.data.detail.size() <= 120
+        && request.resource.data.vid is string && request.resource.data.vid.size() <= 40
+        && request.resource.data.waktu is timestamp;
+      allow read: if request.auth != null;
+      allow update, delete: if false;
+    }
+  }
+}

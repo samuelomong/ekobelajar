@@ -173,6 +173,7 @@ $("doneLesson").onclick = () => {
   const adding = !done.has(currentId);
   if (adding) done.add(currentId); else done.delete(currentId);
   saveDone(); refreshDoneBtn(); updateProgress(); renderCards(); refreshCertSlot();
+  if (adding && window.Track) { const L = lessons.find(x => x.id === currentId); Track.log("materi", L ? L.title : ""); }
   if (adding && window.FX) {
     const r = $("doneLesson").getBoundingClientRect();
     FX.burst(r.left + r.width / 2, r.top, 45);
@@ -264,6 +265,7 @@ function showResult() {
   const old = readBest();
   const isBest = !old || score > old.score || (score === old.score && ms < old.ms);
   if (isBest) saveBest({ score, total, ms });
+  if (window.Track) Track.log("kuis", score + "/" + total + " · " + fmtTime(ms));
   const best = isBest ? { score, ms, total } : old;
   quizEl.innerHTML = `
     <div class="result">
@@ -447,7 +449,7 @@ const certModal = $("certModal");
 function openCert() {
   const s = certStatus();
   if (!s.ok) return;                                   // syarat dicek ulang, bukan sekadar tombol
-  $("certName").value = ""; $("certErr").hidden = true; $("certOut").hidden = true; $("certMake").textContent = "Buat sertifikat";
+  $("certName").value = (window.Track && Track.name()) || ""; $("certErr").hidden = true; $("certOut").hidden = true; $("certMake").textContent = "Buat sertifikat";
   certModal.hidden = false; document.body.style.overflow = "hidden";
   $("certName").focus();
 }
@@ -464,12 +466,14 @@ async function makeCert() {
   $("certMake").disabled = true;
   await certFontsReady();
   const logo = $("campusLogo");
+  const serial = "EKO-" + new Date().getFullYear() + "-" + String(Math.floor(1000 + Math.random() * 9000));
   const url = certToDataURL({
     name, score: s.best.score, total: s.best.total,
     dateStr: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-    serial: "EKO-" + new Date().getFullYear() + "-" + String(Math.floor(1000 + Math.random() * 9000)),
+    serial,
     campusName: CAMPUS.name, campusSub: CAMPUS.sub, logo: logo && logo.complete ? logo : null
   });
+  if (window.Track) Track.log("sertifikat", name + " · " + s.best.score + "/" + s.best.total + " · " + serial);
   $("certImg").src = url;
   $("certDl").href = url;
   $("certDl").download = "sertifikat-ekobelajar-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".png";
